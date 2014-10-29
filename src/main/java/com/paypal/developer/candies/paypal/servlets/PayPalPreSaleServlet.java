@@ -6,25 +6,26 @@
 package com.paypal.developer.candies.paypal.servlets;
 
 import com.paypal.api.payments.Amount;
-import com.paypal.api.payments.Details;
 import com.paypal.api.payments.Links;
 import com.paypal.api.payments.Payer;
 import com.paypal.api.payments.Payment;
 import com.paypal.api.payments.RedirectUrls;
 import com.paypal.api.payments.Transaction;
+import com.paypal.core.LoggingManager;
 import com.paypal.core.rest.APIContext;
 import com.paypal.core.rest.PayPalRESTException;
 import com.paypal.core.rest.PayPalResource;
 import com.paypal.developer.candies.paypal.util.GenerateAccessToken;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -32,7 +33,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -43,8 +43,8 @@ public class PayPalPreSaleServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOGGER = Logger.getLogger(PayPalPreSaleServlet.class);
-    Map<String, String> map = new HashMap<String, String>();
+    private static Logger LOGGER = Logger.getLogger("PayPalPreSaleServlet");
+    
     
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
@@ -57,7 +57,7 @@ public class PayPalPreSaleServlet extends HttpServlet {
 		try {
 			PayPalResource.initConfig(is);
 		} catch (PayPalRESTException e) {
-			LOGGER.fatal(e.getMessage());
+			LOGGER.log(Level.SEVERE, e.getLocalizedMessage());
 		}
 
 	}
@@ -139,37 +139,36 @@ public class PayPalPreSaleServlet extends HttpServlet {
             String guid = UUID.randomUUID().toString().replaceAll("-", "");
             redirectUrls.setCancelUrl(request.getScheme() + "://"
                             + request.getServerName() + ":" + request.getServerPort()
-                            + request.getContextPath() + "/paymentwithpaypal?guid=" + guid);
+                            + request.getContextPath() + "/paypalpostsale?guid=" + guid);
             redirectUrls.setReturnUrl(request.getScheme() + "://"
                             + request.getServerName() + ":" + request.getServerPort()
-                            + request.getContextPath() + "/paymentwithpaypal?guid=" + guid);
+                            + request.getContextPath() + "/paypalpostsale?guid=" + guid);
             payment.setRedirectUrls(redirectUrls);
 
             // Create a payment by posting to the APIService
             // using a valid AccessToken
             // The return object contains the status;
-            try {
-                    Payment createdPayment = payment.create(apiContext);
-                    LOGGER.info("Created payment with id = "
-                                    + createdPayment.getId() + " and status = "
-                                    + createdPayment.getState());
-                    // ###Payment Approval Url
-                    Iterator<Links> links = createdPayment.getLinks().iterator();
-                    while (links.hasNext()) {
-                            Links link = links.next();
-                            if (link.getRel().equalsIgnoreCase("approval_url")) {
-                                    session.setAttribute("redirectURL", link.getHref());
-                            }
+            Payment createdPayment = payment.create(apiContext);
+            LOGGER.info("Created payment with id = "
+                            + createdPayment.getId() + " and status = "
+                            + createdPayment.getState());
+
+            session.setAttribute("paymentId", createdPayment.getId());
+
+            // ###Payment Approval Url
+            Iterator<Links> links = createdPayment.getLinks().iterator();
+            while (links.hasNext()) {
+                    Links link = links.next();
+                    if (link.getRel().equalsIgnoreCase("approval_url")) {
+                            session.setAttribute("redirectURL", link.getHref());
                     }
-                    request.setAttribute("response", Payment.getLastResponse());
-                    map.put(guid, createdPayment.getId());
-            } catch (PayPalRESTException e) {
-                    request.setAttribute("error", e.getMessage());
             }
-            
+            request.setAttribute("response", Payment.getLastResponse());
             
         } catch (PayPalRESTException e) {
-                request.setAttribute("error", e.getMessage());
+            LoggingManager.debug(PayPalPreSaleServlet.class, e.getLocalizedMessage());
+            LOGGER.log(Level.SEVERE, Payment.getLastRequest() + " - " + Payment.getLastResponse());
+            request.setAttribute("error", e.getMessage());
         }
         
         request.setAttribute("request", Payment.getLastRequest());

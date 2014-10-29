@@ -6,14 +6,13 @@
 package com.paypal.developer.candies.paypal.servlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -24,7 +23,7 @@ public class PayPalSale extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOGGER = Logger.getLogger(PayPalSale.class);
+    private static Logger LOGGER = Logger.getLogger("PayPalSale");
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
