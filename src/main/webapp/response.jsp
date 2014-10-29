@@ -10,19 +10,18 @@
 		var request =
 <%=request.getAttribute("request")%>
 	;
-		var response =
-<%=request.getAttribute("response")%>
+		var response = "<%=request.getAttribute("response")%>"
 	;
 		var error ='<%=request.getAttribute("error")%>';
 		var req = document.getElementById("request");
 		var resp = document.getElementById("response");
 		if (request != null) {
-			req.innerHTML = JSON.stringify(request, null, 4);
+			req.innerHTML = request;
 		} else {
 			req.innerHTML = "No payload for this request";
 		}
 		if (response != null) {
-			resp.innerHTML = JSON.stringify(response, null, 4);
+			resp.innerHTML = response;
 		} else if (error != null) {
 			resp.innerHTML = error;
 
@@ -33,15 +32,7 @@
 <body onload="stringify();">
 	<a href="index.html">Back</a>
 	<br />
-	<%
-		if (request.getAttribute("redirectURL") != null) {
-	%>
-	<a href=<%=(String) request.getAttribute("redirectURL")%>>Redirect
-		to PayPal to approve the payment</a>
-	<br />
-	<%
-		}
-	%>
+	
 	<table border="1px" style="border-collapse: collapse">
 		<tr>
 			<th>Request</th>

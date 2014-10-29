@@ -14,6 +14,7 @@ import com.paypal.developer.candies.paypal.util.GenerateAccessToken;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,11 +49,10 @@ public class PayPalPostSale extends HttpServlet {
     public void init (ServletConfig cfg) throws ServletException    {
         
         try {
-            //InputStream inputStream = Checkout.class.getResourceAsStream("/var/candies/candies.properties");
-            File arq = new File("/var/candies/candies.properties");
-            FileReader inputStream = new FileReader(arq);
             Properties prop = new Properties();
-            prop.load(inputStream);
+            InputStream is = PayPalPreSaleServlet.class
+				.getResourceAsStream("/sdk_config.properties");
+            prop.load(is);
             
             this.mqttQueue = prop.getProperty("mqttqueue");
             this.mqttServer = prop.getProperty("mqttserver");
